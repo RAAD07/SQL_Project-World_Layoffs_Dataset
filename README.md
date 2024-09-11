@@ -8,11 +8,11 @@ In the Data Cleaning part, we will be focussing on 4 things.
 3. Handle Null values or blank values
 4. Remove Rows and Columns if necessary or if they are for no use
 
-#### Checking the raw data
+### Checking the raw data
 ``` sql
 SELECT * FROM layoffs; #layoffs hold all the raw data
 ```
-#### Creating a duplicate table to work and protect the raw data
+### Creating a duplicate table to work and protect the raw data
 ``` sql
 CREATE TABLE layoffs_worksheet 
 LIKE layoffs;
@@ -201,7 +201,8 @@ MODIFY `date` DATE;
 
 ## 3. Handling the null values or missing values
 
-#checking the null or missing values in some columns
+### Checking the null or missing values in some columns
+```sql
 SELECT *
 FROM layoffs_worksheet2
 WHERE industry IS NULL OR industry =''
@@ -211,13 +212,17 @@ OR
 percentage_laid_off IS NULL OR percentage_laid_off =''
 OR
 funds_raised_millions IS NULL OR funds_raised_millions ='';
+```
 
-#checking the industry column with missing values
+### Checking the industry column with missing values
+``` sql
 SELECT *
 FROM layoffs_worksheet2
 WHERE industry IS NULL OR industry ='';
+```
 
-#checking whether these missing companies have multiple rows from where we can pull the missing values
+### Checking whether these missing companies have multiple rows from where we can pull the missing values
+``` sql
 SELECT *
 FROM layoffs_worksheet2
 WHERE company IN
@@ -226,28 +231,41 @@ SELECT company
 FROM layoffs_worksheet2
 WHERE industry IS NULL OR industry =''
 );
+```
+
+### Checking missing values for the Industry column
 
 /* checking the companies have missing values for industry whether they have values for the industry column
 for some other rows or not so that we can populate the missing values with that industry type */
+``` sql
 SELECT * FROM layoffs_worksheet2 t1
 JOIN layoffs_worksheet2 t2
 ON t1.company=t2.company
 WHERE (t1.industry is NULL or t1.industry='') AND (t2.industry IS NOT NULL AND t2.industry!='');
+```
 
-/* populating the missing values of the industry columns with the relevant industry values
+### Populating the missing values of the industry column
+
+/* populating the missing values of the industry column with the relevant industry values
 pulled from other rows of the same company */
+```sql
 UPDATE layoffs_worksheet2 t1
 JOIN layoffs_worksheet2 t2
 ON t1.company=t2.company
 SET t1.industry=t2.industry
 WHERE (t1.industry IS NULL OR t1.industry='') AND (t2.industry IS NOT NULL AND t2.industry!='');
+```
+### Checking the updated columns which had missing values previously
 
 /* checking whether the missing values are updated or not after executing the earlier queries
 and Airbnb and Carvana were one of those companies which had missing values in the industry column */
+``` sql
 SELECT * FROM layoffs_worksheet2
 WHERE company IN ('Airbnb','Carvana');
+```
 
-#rechecking whether there are still any missing values or not in the industry column
+### Rechecking whether there are still any missing values or not in the industry column
+``` sql
 SELECT *
 FROM layoffs_worksheet2
 WHERE company IN
@@ -255,140 +273,178 @@ WHERE company IN
 SELECT company
 FROM layoffs_worksheet2
 WHERE industry IS NULL OR industry =''
-); 
+);
+```
 /* seems all the rows are updated except 1 which did not have any other rows to pull the industry type from
 and we will leave it like this because we do not have anything to do for this row
 and putting wrong info is worse than having no info */
 
 
--- 4. Remove Rows and Columns if necessary or if they are for no use
+ ## 4. Remove Rows and Columns if necessary or if they are for no use
 
 /* As I will work with the total_laid_off, percentage_laid_off and funds_raised_millions data in the PART 2 
 of this project so if I have rows where both of these columns are missing then that row is for no use for us
 */
 
-#checking for missing values in all of those columns
+### Checking for missing values in all of those columns
+``` sql
 SELECT *
 FROM layoffs_worksheet2
 WHERE (total_laid_off IS NULL or total_laid_off='')
 AND (percentage_laid_off IS NULL or percentage_laid_off='')
 AND (funds_raised_millions IS NULL or funds_raised_millions='');
+```
 
-#deleting all the rows that have null or missing values in those 3 columns
+### Deleting all the rows that have null or missing values in those 3 columns
+``` sql
 DELETE
 FROM layoffs_worksheet2
 WHERE (total_laid_off IS NULL or total_laid_off='')
 AND (percentage_laid_off IS NULL or percentage_laid_off='')
 AND (funds_raised_millions IS NULL or funds_raised_millions='');
-
+```
 /* I wanted to delete the rows where total_laid_off and percentage_laid_off data are missing
 but there are 316 rows which have missing values in those 2 columns and as I am not sure whether
 deleting so many rows will be a good choise or not so keeping them for now in the datasets.
 I will delete them later on if needed. 
 */
+
+``` sql
 SELECT *
 FROM layoffs_worksheet2
 WHERE (total_laid_off IS NULL or total_laid_off='')
 AND (percentage_laid_off IS NULL or percentage_laid_off='');
+```
 
-#checking the final datasets and whether I need to delete any other rows or unnecessary columns
+### Checking the final datasets and whether I need to delete any other rows or unnecessary columns
 SELECT * FROM layoffs_worksheet2;
 
 
-#deleting row_num column as the purpose of creating that column is served and it is for no use now
+### Deleting row_num column as the purpose of creating that column is served and it is for no use now
+``` sql
 ALTER TABLE layoffs_worksheet2
 DROP COLUMN row_num;
+```
 
-#checking and counting the rows of the final datasets and checking the difference between the raw dataset
+### Checking and counting the rows of the final datasets and checking the difference between the raw dataset
+``` sql
 SELECT * FROM layoffs_worksheet2;
 SELECT COUNT(*) FROM layoffs_worksheet2;
 SELECT * FROM layoffs;
 SELECT COUNT(*) FROM layoffs;
+```
 
+## PART 2 : Exploratory Data Analysis (EDA)
 
--- PART 2 : Exploratory Data Analysis (EDA)
-
+### Checking the clean dataset
+``` sql
 SELECT * FROM layoffs_worksheet2;
+```
 
-#checking the maximum total_laid_off and maximum percentage_laid_off
+### Checking the maximum total_laid_off and maximum percentage_laid_off
+``` sql
 SELECT MAX(total_laid_off) AS total_layoff, MAX(percentage_laid_off) as total_layoff_percentage
 FROM layoffs_worksheet2;
+```
 
-#checking which companies have laid off all their employees and counting their numbers
+### Checking which companies have laid off all their employees and counting their numbers
+``` sql
 SELECT *
 FROM layoffs_worksheet2
 WHERE percentage_laid_off=1
 ORDER BY total_laid_off DESC;
-
+```
+``` sql
 SELECT COUNT(*) AS number_of_companies_with_full_layoff
 FROM layoffs_worksheet2
 WHERE percentage_laid_off=1;
+```
 
-#funds raise by the companies that laid off all their employees
+### Funds raise by the companies that laid off all their employees
+``` sql
 SELECT *
 FROM layoffs_worksheet2
 WHERE percentage_laid_off=1
 ORDER BY funds_raised_millions DESC;
+```
 
-#companies that laid of the most
+### Companies that laid of the most
+``` sql
 SELECT company, SUM(total_laid_off) AS total_number_of_laid_off_employees
 FROM layoffs_worksheet2
 GROUP BY company
 ORDER BY total_number_of_laid_off_employees DESC;
+```
 
-#which industries that laid of the most
+### Which industries laid of the most
+``` sql
 SELECT industry, SUM(total_laid_off) AS total_number_of_laid_off_employees
 FROM layoffs_worksheet2
 GROUP BY industry
 ORDER BY total_number_of_laid_off_employees DESC;
+```
 
-#checking the time period of the layoff
+### Checking the time-period or tenure of the layoff
+``` sql
 SELECT MIN(`date`) AS the_starting_date,
 MAX(`date`) AS the_end_date,
 DATEDIFF(MAX(`date`), MIN(`date`)) AS time_period_in_days
 FROM layoffs_worksheet2;
+```
 
-#which countries that laid of the most
+### Which countries that laid of the most
+``` sql
 SELECT country, SUM(total_laid_off) AS total_number_of_laid_off_employees
 FROM layoffs_worksheet2
 GROUP BY country
 ORDER BY total_number_of_laid_off_employees DESC;
+```
 
-#checking whether Bangladesh is on the list or not
+### Checking whether Bangladesh is on the list or not
+```sql
 SELECT *
 FROM layoffs_worksheet2
 WHERE country LIKE '%Bangladesh%';
-
-/* checking in which stage of the company most of the layoff happened
-series a means early stage than series b and post IPO means post initial public offering which includes amazon, google */
+```
+### Checking in which stage of the company most of the layoff happened
+/* Series a means early stage than series b and post IPO means post initial public offering which includes amazon, google */
+``` sql
 SELECT stage, SUM(total_laid_off) as total_laid_off_in_a_year
 FROM layoffs_worksheet2
 GROUP BY stage
 ORDER BY total_laid_off_in_a_year DESC;
+```
 /* seems like post ipo, and mid level (series c,d,e) had the most number of layoff 
 along with companies who got acquired */
 
-#checking in which year most of the layoff happened
+### Checking in which year most of the layoff happened
+``` sql
 SELECT YEAR(`date`) AS layoff_year, SUM(total_laid_off) as total_laid_off_in_a_year
 FROM layoffs_worksheet2
 GROUP BY layoff_year
 ORDER BY total_laid_off_in_a_year DESC;
+```
 
-#checking in which month most of the layoff happened
+### Checking in which month most of the layoff happened
+``` sql
 SELECT MONTH(`date`) AS layoff_month, SUM(total_laid_off) as total_laid_off_in_a_month
 FROM layoffs_worksheet2
 GROUP BY layoff_month
 ORDER BY total_laid_off_in_a_month DESC;
 #seems like january had the most amount of layoff but we can only see the month and cannot see the year
+```
 
-#checking the month and the year where most of the layoff happened
+### Checking the month and the year where most of the layoff happened
+``` sql
 SELECT SUBSTR(`date`, 1, 7) as layoff_year_and_month, SUM(total_laid_off) as total_laid_of_in_a_month_of_an_year
 FROM layoffs_worksheet2
 WHERE SUBSTR(`date`, 1, 7) IS NOT NULL OR SUBSTR(`date`, 1, 7)!=''
 GROUP BY layoff_year_and_month
 ORDER BY layoff_year_and_month;
+```
 
-#checking the month and year of layoff with the total till that month
+### Checking the month and year of layoff with the total till that month
+``` sql
 WITH roling_total AS
 (
 SELECT SUBSTR(`date`, 1, 7) as layoff_year_and_month, SUM(total_laid_off) as total_laid_of_in_a_month_of_an_year
@@ -400,14 +456,18 @@ ORDER BY layoff_year_and_month
 SELECT *,
 SUM(total_laid_of_in_a_month_of_an_year) OVER(ORDER BY layoff_year_and_month) as total_layoff_till_this_month
 FROM roling_total;
+```
 
-#checking which companies laid of most of their employees in which months 
+### Checking which companies laid of most of their employees in which months 
+``` sql
 SELECT company, YEAR(`date`) AS layoff_year, SUM(total_laid_off) as total_laid_off_in_a_year
 FROM layoffs_worksheet2
 GROUP BY company, layoff_year
 ORDER BY total_laid_off_in_a_year DESC, company, layoff_year DESC;
+```
 
-#top 5 companies in each year that laid off their employees
+### Top 5 companies in each year that laid off their employees
+``` sql
 WITH top_companies AS
 (
 SELECT company, YEAR(`date`) as year_of_layoff, SUM(total_laid_off) AS total_laid_off_in_a_year
@@ -423,8 +483,10 @@ WHERE year_of_layoff IS NOT NULL OR year_of_layoff!=''
 )
 SELECT * FROM company_ranking
 WHERE ranking<=5;
+```
 
-#top 5 industries in each year that laid off their employees
+### Top 5 industries in each year that laid off their employees
+``` sql
 WITH top_industries AS
 (
 SELECT industry, YEAR(`date`) as year_of_layoff, SUM(total_laid_off) AS total_laid_off_in_a_year
@@ -440,8 +502,10 @@ WHERE year_of_layoff IS NOT NULL OR year_of_layoff!=''
 )
 SELECT * FROM industry_ranking
 WHERE ranking<=5;
+```
 
-#top 5 countries in each year that laid off their employees
+### Top 5 countries in each year that laid off their employees
+``` sql
 WITH top_countries AS
 (
 SELECT country, YEAR(`date`) as year_of_layoff, SUM(total_laid_off) AS total_laid_off_in_a_year
@@ -457,14 +521,18 @@ WHERE year_of_layoff IS NOT NULL OR year_of_layoff!=''
 )
 SELECT * FROM country_ranking
 WHERE ranking<=5;
+```
 
-#top companies that raised funds
+### Top companies that raised funds
+``` sql
 SELECT company, SUM(funds_raised_millions) as total_funds_in_millions
 FROM layoffs_worksheet2
 GROUP BY company
 ORDER BY total_funds_in_millions DESC;
+```
 
-#top 5 company in each year that had most amount of funds
+### Top 5 companies in each year that had most amount of funds
+``` sql
 WITH top_companies AS
 (
 SELECT company, YEAR(`date`) as year_of_funding, SUM(funds_raised_millions) AS total_funds_collected_in_a_year_in_millions
@@ -480,8 +548,10 @@ WHERE year_of_funding IS NOT NULL OR year_of_funding!=''
 )
 SELECT * FROM company_ranking
 WHERE ranking<=5;
+```
 
-#top 5 industries in each year that had most amount of funds
+### Top 5 industries in each year that had most amount of funds
+``` sql
 WITH top_industries AS
 (
 SELECT industry, YEAR(`date`) as year_of_funding, SUM(funds_raised_millions) AS total_funds_collected_in_a_year_in_millions
@@ -497,8 +567,10 @@ WHERE year_of_funding IS NOT NULL OR year_of_funding!=''
 )
 SELECT * FROM industry_ranking
 WHERE ranking<=5;
+```
 
-#top 5 countries (company belongs to that country) in each year that had most amount of funds
+### Top 5 countries (company belongs to that country) in each year that had most amount of funds
+``` sql
 WITH top_countries AS
 (
 SELECT country, YEAR(`date`) as year_of_funding, SUM(funds_raised_millions) AS total_funds_collected_in_a_year_in_millions
@@ -514,11 +586,11 @@ WHERE year_of_funding IS NOT NULL OR year_of_funding!=''
 )
 SELECT * FROM country_ranking
 WHERE ranking<=5;
-#suprisingly Lithuania was in 4th rank in 2022 that had most amount of funds
-
-#therefore checking the companies from Lithuania
+```
+Surprisingly, Lithuania was in 4th rank in 2022 with the most funds. Therefore, checking the companies from Lithuania
+``` sql
 SELECT * FROM layoffs_worksheet2
 WHERE country LIKE '%Lithuania%';
-#UBER is from Lithuania and that makes sense now.
 
-## Part 2: Exploratory Data Analysis (EDA)
+#UBER is from Lithuania and that makes sense now.
+```
