@@ -8,11 +8,11 @@ In the Data Cleaning part, we will be focussing on 4 things.
 3. Handle Null values or blank values
 4. Remove Rows and Columns if necessary or if they are for no use
 
-### checking the raw data
+### Checking the raw data
 ``` sql
 SELECT * FROM layoffs; #layoffs hold all the raw data
 ```
-### creating a duplicate table to work and protect the raw data
+### Creating a duplicate table to work and protect the raw data
 ``` sql
 CREATE TABLE layoffs_worksheet 
 LIKE layoffs;
@@ -20,14 +20,17 @@ LIKE layoffs;
 SELECT * FROM layoffs_worksheet;
 ```
 
-### inserting all the rows of layoff table into new layoffs_worksheet table
+### Inserting all the rows of layoff table into new layoffs_worksheet table
 ``` sql
 INSERT layoffs_worksheet
 SELECT * FROM layoffs;
 ```
 
+### Creating another table to manipulate data and create extra columns
+
 /*creating a new table named layoffs_worksheet2 by copying clipboard>create statement
 and add one extra column named row_num*/
+
 ``` sql
 CREATE TABLE `layoffs_worksheet2` (
   `company` text,
@@ -44,8 +47,12 @@ CREATE TABLE `layoffs_worksheet2` (
 
 SELECT * FROM layoffs_worksheet2;
 ```
+### Inserting values to this new table and adding extra column
+
 /* inserting values into this new table and assigning row_num by creating a partition on each column so that 
 each unique row is assigned as 1 and if there is any duplicates then it will be assigned as 2 in the row_num */
+
+``` sql
 INSERT INTO layoffs_worksheet2
 SELECT *,
 ROW_NUMBER() OVER(PARTITION BY company, location, industry, total_laid_off, percentage_laid_off, `date`, 
@@ -53,108 +60,146 @@ stage, country, funds_raised_millions) as row_num
 FROM layoffs_worksheet;
 
 SELECT * FROM layoffs_worksheet2;
+```
 
+## 1. Removing the duplicates
 
--- 1. Removing the duplicates
-
-#checking the duplicates
+### Checking the duplicates
+``` sql
 SELECT * FROM layoffs_worksheet2
 WHERE row_num > 1;
+```
 
-#deleting the duplicates
+### Deleting the duplicates
+``` sql
 DELETE
 FROM layoffs_worksheet2
 WHERE row_num > 1;
+```
 
-#rechecking whether there are still any duplicates or not
+### Rechecking whether there are still any duplicates or not
+``` sql
 SELECT * FROM layoffs_worksheet2
 WHERE row_num>1;
+```
 
+## 2. Standardazining Column
 
--- 2. Standardazining Column
-
-#checking whether the trim function working right or not
+### Checking and Trimming extra spaces from company names
+``` sql
 SELECT company, TRIM(company) as company_name
 FROM layoffs_worksheet2;
+```
 
-#updating the company name in the database
+### Updating the company name in the database
+``` sql
 UPDATE layoffs_worksheet2
 SET company = TRIM(company);
+```
 
+### Updating the location in the database
+``` sql
 UPDATE layoffs_worksheet2
 SET location = TRIM(location);
+```
 
+### Updating the country name in the database
+``` sql
 UPDATE layoffs_worksheet2
 SET country = TRIM(country);
+```
 
+### Updating the industry name in the database
+``` sql
 UPDATE layoffs_worksheet2
 SET industry = TRIM(industry);
-
-#checking the new update
+```
+### Checking the new update
+``` sql
 SELECT DISTINCT (company)
 FROM layoffs_worksheet2;
-
-#checking the industry
+```
+### Checking the industry
+``` sql
 SELECT DISTINCT (industry)
 FROM layoffs_worksheet2
 ORDER BY industry;
-
-#checking how many are related to crypto as there are 3 different types of industry found related to crypto
+```
+### Checking how many are related to crypto as there are 3 different types of industry found related to crypto
+``` sql
 SELECT * FROM layoffs_worksheet2
 WHERE industry LIKE '%crypto%';
-
-#updating all the idustry related to crypto as crypto
+```
+### Updating all the idustry related to crypto as crypto
+``` sql
 UPDATE layoffs_worksheet2
 SET industry = 'Crypto'
 WHERE industry LIKE '%crypto%';
+```
 
-#checking the industries after update
+### Checking the industries after update
+``` sql
 SELECT DISTINCT (industry)
 FROM layoffs_worksheet2
 ORDER BY industry;
+```
 
-#checking the location whether same type of location was input differently by mistake or not
+### Checking the location whether same type of location was input differently by mistake or not
+``` sql
 SELECT DISTINCT (location)
 FROM layoffs_worksheet2;
+```
 
-#checking the country whether same country was input differently by mistake or not
+### Checking the country whether same country was input differently by mistake or not
+``` sql
 SELECT DISTINCT (country)
 FROM layoffs_worksheet2
 ORDER BY country;
-
-#checking whether all the country named United States are selected or not
+```
+### Checking whether all the country named United States are selected or not
+``` sql
 SELECT DISTINCT (country) FROM layoffs_worksheet2
 WHERE country LIKE '%United States%';
+```
 
-#fixing United States
+### Fixing United States
+``` sql
 UPDATE layoffs_worksheet2
 SET country= 'United States'
 WHERE country LIKE '%United States%';
+```
 
-#rechecking the countries after updating
+### Rechecking the countries after updating
+``` sql
 SELECT DISTINCT (country)
 FROM layoffs_worksheet2
 ORDER BY country;
+```
 
-#checking the queries to format the date column
+### Checking the queries to format the date column
+``` sql
 SELECT `date`,
 STR_TO_DATE(`date`, '%m/%d/%Y')
 FROM layoffs_worksheet2;
+```
 
-#updating the date column
+### Updating the date column
+``` sql
 UPDATE layoffs_worksheet2
 SET `date`= STR_TO_DATE(`date`, '%m/%d/%Y');
 
 SELECT *
 FROM layoffs_worksheet2
 LIMIT 100;
+```
 
-#the date column was still in text type and we are going to change the data type from text to date
+### Changing the date column data type from text to date
+``` sql
 ALTER TABLE layoffs_worksheet2
 MODIFY `date` DATE;
+```
 
-
--- 3. Handling the null values or missing values
+## 3. Handling the null values or missing values
 
 #checking the null or missing values in some columns
 SELECT *
