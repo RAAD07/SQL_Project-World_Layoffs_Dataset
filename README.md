@@ -20,7 +20,7 @@ LIKE layoffs;
 SELECT * FROM layoffs_worksheet;
 ```
 
-### Inserting all the rows of layoff table into new layoffs_worksheet table
+### Inserting all the rows of the layoff table into the new layoffs_worksheet table
 ``` sql
 INSERT layoffs_worksheet
 SELECT * FROM layoffs;
@@ -47,10 +47,10 @@ CREATE TABLE `layoffs_worksheet2` (
 
 SELECT * FROM layoffs_worksheet2;
 ```
-### Inserting values to this new table and adding extra column
+### Inserting values to this new table and adding an extra column
 
 /* inserting values into this new table and assigning row_num by creating a partition on each column so that 
-each unique row is assigned as 1 and if there is any duplicates then it will be assigned as 2 in the row_num */
+each unique row is assigned as 1 and if there are any duplicates then it will be assigned as 2 in the row_num */
 
 ``` sql
 INSERT INTO layoffs_worksheet2
@@ -83,7 +83,7 @@ SELECT * FROM layoffs_worksheet2
 WHERE row_num>1;
 ```
 
-## 2. Standardazining Column
+## 2. Standardizing Columns
 
 ### Checking and Trimming extra spaces from company names
 ``` sql
@@ -130,33 +130,33 @@ ORDER BY industry;
 SELECT * FROM layoffs_worksheet2
 WHERE industry LIKE '%crypto%';
 ```
-### Updating all the idustry related to crypto as crypto
+### Updating all the industry related to crypto as crypto
 ``` sql
 UPDATE layoffs_worksheet2
 SET industry = 'Crypto'
 WHERE industry LIKE '%crypto%';
 ```
 
-### Checking the industries after update
+### Checking the industries after the update
 ``` sql
 SELECT DISTINCT (industry)
 FROM layoffs_worksheet2
 ORDER BY industry;
 ```
 
-### Checking the location whether same type of location was input differently by mistake or not
+### Checking the location whether the same type of location was input differently by mistake or not
 ``` sql
 SELECT DISTINCT (location)
 FROM layoffs_worksheet2;
 ```
 
-### Checking the country whether same country was input differently by mistake or not
+### Checking the country whether the same country was input differently by mistake or not
 ``` sql
 SELECT DISTINCT (country)
 FROM layoffs_worksheet2
 ORDER BY country;
 ```
-### Checking whether all the country named United States are selected or not
+### Checking whether all the countries named the United States are selected or not
 ``` sql
 SELECT DISTINCT (country) FROM layoffs_worksheet2
 WHERE country LIKE '%United States%';
@@ -199,7 +199,7 @@ ALTER TABLE layoffs_worksheet2
 MODIFY `date` DATE;
 ```
 
-## 3. Handling the null values or missing values
+## 3. Handling the null values and missing values
 
 ### Checking the null or missing values in some columns
 ```sql
@@ -235,7 +235,7 @@ WHERE industry IS NULL OR industry =''
 
 ### Checking missing values for the Industry column
 
-/* checking the companies have missing values for industry whether they have values for the industry column
+/* checking the companies have missing values for industry and whether they have values for the industry column
 for some other rows or not so that we can populate the missing values with that industry type */
 ``` sql
 SELECT * FROM layoffs_worksheet2 t1
@@ -258,7 +258,7 @@ WHERE (t1.industry IS NULL OR t1.industry='') AND (t2.industry IS NOT NULL AND t
 ### Checking the updated columns which had missing values previously
 
 /* checking whether the missing values are updated or not after executing the earlier queries
-and Airbnb and Carvana were one of those companies which had missing values in the industry column */
+and Airbnb and Carvana were some of those companies that had missing values in the industry column */
 ``` sql
 SELECT * FROM layoffs_worksheet2
 WHERE company IN ('Airbnb','Carvana');
@@ -275,7 +275,7 @@ FROM layoffs_worksheet2
 WHERE industry IS NULL OR industry =''
 );
 ```
-/* seems all the rows are updated except 1 which did not have any other rows to pull the industry type from
+/* It seems all the rows are updated except 1 which did not have any other rows to pull the industry type from
 and we will leave it like this because we do not have anything to do for this row
 and putting wrong info is worse than having no info */
 
@@ -283,7 +283,7 @@ and putting wrong info is worse than having no info */
  ## 4. Remove Rows and Columns if necessary or if they are for no use
 
 /* As I will work with the total_laid_off, percentage_laid_off and funds_raised_millions data in the PART 2 
-of this project so if I have rows where both of these columns are missing then that row is for no use for us
+of this project so if I have rows where both of these columns are missing then that row is for no use to us
 */
 
 ### Checking for missing values in all of those columns
@@ -304,8 +304,8 @@ AND (percentage_laid_off IS NULL or percentage_laid_off='')
 AND (funds_raised_millions IS NULL or funds_raised_millions='');
 ```
 /* I wanted to delete the rows where total_laid_off and percentage_laid_off data are missing
-but there are 316 rows which have missing values in those 2 columns and as I am not sure whether
-deleting so many rows will be a good choise or not so keeping them for now in the datasets.
+but 316 rows have missing values in those 2 columns and I am not sure whether
+deleting so many rows will be a good choice or not so keeping them for now in the datasets.
 I will delete them later on if needed. 
 */
 
@@ -317,10 +317,11 @@ AND (percentage_laid_off IS NULL or percentage_laid_off='');
 ```
 
 ### Checking the final datasets and whether I need to delete any other rows or unnecessary columns
+``` sql
 SELECT * FROM layoffs_worksheet2;
+```
 
-
-### Deleting row_num column as the purpose of creating that column is served and it is for no use now
+### Deleting the row_num column as the purpose of creating that column is served and it is for no use now
 ``` sql
 ALTER TABLE layoffs_worksheet2
 DROP COLUMN row_num;
@@ -334,7 +335,7 @@ SELECT * FROM layoffs;
 SELECT COUNT(*) FROM layoffs;
 ```
 
-## PART 2 : Exploratory Data Analysis (EDA)
+## PART 2: Exploratory Data Analysis (EDA)
 
 ### Checking the clean dataset
 ``` sql
@@ -360,7 +361,7 @@ FROM layoffs_worksheet2
 WHERE percentage_laid_off=1;
 ```
 
-### Funds raise by the companies that laid off all their employees
+### Funds raised by the companies that laid off all their employees
 ``` sql
 SELECT *
 FROM layoffs_worksheet2
@@ -368,7 +369,7 @@ WHERE percentage_laid_off=1
 ORDER BY funds_raised_millions DESC;
 ```
 
-### Companies that laid of the most
+### Companies that laid off the most
 ``` sql
 SELECT company, SUM(total_laid_off) AS total_number_of_laid_off_employees
 FROM layoffs_worksheet2
@@ -376,7 +377,7 @@ GROUP BY company
 ORDER BY total_number_of_laid_off_employees DESC;
 ```
 
-### Which industries laid of the most
+### Which industries laid off the most
 ``` sql
 SELECT industry, SUM(total_laid_off) AS total_number_of_laid_off_employees
 FROM layoffs_worksheet2
@@ -384,7 +385,7 @@ GROUP BY industry
 ORDER BY total_number_of_laid_off_employees DESC;
 ```
 
-### Checking the time-period or tenure of the layoff
+### Checking the time period or tenure of the layoff
 ``` sql
 SELECT MIN(`date`) AS the_starting_date,
 MAX(`date`) AS the_end_date,
@@ -392,7 +393,7 @@ DATEDIFF(MAX(`date`), MIN(`date`)) AS time_period_in_days
 FROM layoffs_worksheet2;
 ```
 
-### Which countries that laid of the most
+### Which countries laid of the most
 ``` sql
 SELECT country, SUM(total_laid_off) AS total_number_of_laid_off_employees
 FROM layoffs_worksheet2
@@ -406,18 +407,18 @@ SELECT *
 FROM layoffs_worksheet2
 WHERE country LIKE '%Bangladesh%';
 ```
-### Checking in which stage of the company most of the layoff happened
-/* Series a means early stage than series b and post IPO means post initial public offering which includes amazon, google */
+### Checking at which stage of the company most of the layoffs happened
+/* Series A means early stage than Series B and post IPO means post-initial public offering which includes Amazon and Google */
 ``` sql
 SELECT stage, SUM(total_laid_off) as total_laid_off_in_a_year
 FROM layoffs_worksheet2
 GROUP BY stage
 ORDER BY total_laid_off_in_a_year DESC;
 ```
-/* seems like post ipo, and mid level (series c,d,e) had the most number of layoff 
+/* It seems like post IPO, and mid-level (series c,d,e) had the most number of layoffs 
 along with companies who got acquired */
 
-### Checking in which year most of the layoff happened
+### Checking in which year most of the layoffs happened
 ``` sql
 SELECT YEAR(`date`) AS layoff_year, SUM(total_laid_off) as total_laid_off_in_a_year
 FROM layoffs_worksheet2
@@ -425,7 +426,7 @@ GROUP BY layoff_year
 ORDER BY total_laid_off_in_a_year DESC;
 ```
 
-### Checking in which month most of the layoff happened
+### Checking in which month most of the layoffs happened
 ``` sql
 SELECT MONTH(`date`) AS layoff_month, SUM(total_laid_off) as total_laid_off_in_a_month
 FROM layoffs_worksheet2
@@ -458,7 +459,7 @@ SUM(total_laid_of_in_a_month_of_an_year) OVER(ORDER BY layoff_year_and_month) as
 FROM roling_total;
 ```
 
-### Checking which companies laid of most of their employees in which months 
+### Checking which companies laid off most of their employees in which months 
 ``` sql
 SELECT company, YEAR(`date`) AS layoff_year, SUM(total_laid_off) as total_laid_off_in_a_year
 FROM layoffs_worksheet2
@@ -531,7 +532,7 @@ GROUP BY company
 ORDER BY total_funds_in_millions DESC;
 ```
 
-### Top 5 companies in each year that had most amount of funds
+### Top 5 companies in each year that had the most amount of funds
 ``` sql
 WITH top_companies AS
 (
@@ -550,7 +551,7 @@ SELECT * FROM company_ranking
 WHERE ranking<=5;
 ```
 
-### Top 5 industries in each year that had most amount of funds
+### Top 5 industries in each year that had the most amount of funds
 ``` sql
 WITH top_industries AS
 (
@@ -569,7 +570,7 @@ SELECT * FROM industry_ranking
 WHERE ranking<=5;
 ```
 
-### Top 5 countries (company belongs to that country) in each year that had most amount of funds
+### Top 5 countries (company belongs to that country) in each year that had the most amount of funds
 ``` sql
 WITH top_countries AS
 (
