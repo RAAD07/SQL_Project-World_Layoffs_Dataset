@@ -8,11 +8,11 @@ In the Data Cleaning part, we will be focussing on 4 things.
 3. Handle Null values or blank values
 4. Remove Rows and Columns if necessary or if they are for no use
 
-### Checking the raw data
+#### Checking the raw data
 ``` sql
 SELECT * FROM layoffs; #layoffs hold all the raw data
 ```
-### Creating a duplicate table to work and protect the raw data
+#### Creating a duplicate table to work and protect the raw data
 ``` sql
 CREATE TABLE layoffs_worksheet 
 LIKE layoffs;
